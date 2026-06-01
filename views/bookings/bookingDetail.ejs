@@ -1,0 +1,171 @@
+<% layout("/layouts/boilerplate") %>
+<link rel="stylesheet" href="/css/booking.css">
+
+<div class="booking-detail-page">
+    <div class="booking-detail-header">
+        <a href="/bookings" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to My Trips</a>
+        <div class="booking-status-header">
+            <% if(booking.status === 'confirmed') { %>
+                <span class="booking-badge badge-confirmed"><i class="fa-solid fa-circle-check"></i> Confirmed</span>
+            <% } else if(booking.status === 'cancelled') { %>
+                <span class="booking-badge badge-cancelled"><i class="fa-solid fa-circle-xmark"></i> Cancelled</span>
+            <% } else if(booking.status === 'completed') { %>
+                <span class="booking-badge badge-completed"><i class="fa-solid fa-circle-check"></i> Completed</span>
+            <% } else { %>
+                <span class="booking-badge badge-pending"><i class="fa-solid fa-clock"></i> Pending</span>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="booking-detail-grid">
+        <!-- Left Column: Listing Info -->
+        <div class="booking-detail-listing">
+            <div class="detail-listing-image">
+                <% if(booking.listing) { %>
+                    <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+                <% } %>
+            </div>
+            <div class="detail-listing-info">
+                <h2><%= booking.listing ? booking.listing.title : "Listing removed" %></h2>
+                <p class="detail-location">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <%= booking.listing ? `${booking.listing.location}, ${booking.listing.country}` : "N/A" %>
+                </p>
+                <% if(booking.listing) { %>
+                    <p class="detail-host">
+                        <i class="fa-solid fa-user"></i> Hosted by <strong>@<%= booking.listing.owner ? booking.listing.owner.username : "unknown" %></strong>
+                    </p>
+                <% } %>
+                <% if(booking.listing) { %>
+                    <a href="/listings/<%= booking.listing._id %>" class="btn-view-listing">View Listing</a>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Right Column: Booking Details -->
+        <div class="booking-detail-info">
+            <h3>Reservation Details</h3>
+
+            <div class="detail-dates-card">
+                <div class="detail-date">
+                    <span class="detail-date-label">CHECK-IN</span>
+                    <span class="detail-date-value"><%= booking.checkIn.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'}) %></span>
+                    <span class="detail-date-time">After 3:00 PM</span>
+                </div>
+                <div class="detail-date-divider"></div>
+                <div class="detail-date">
+                    <span class="detail-date-label">CHECK-OUT</span>
+                    <span class="detail-date-value"><%= booking.checkOut.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'}) %></span>
+                    <span class="detail-date-time">Before 11:00 AM</span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <span><i class="fa-solid fa-moon"></i> Duration</span>
+                <strong><%= nights %> night<%= nights > 1 ? 's' : '' %></strong>
+            </div>
+            <div class="detail-row">
+                <span><i class="fa-solid fa-users"></i> Guests</span>
+                <strong><%= booking.guests %> guest<%= booking.guests > 1 ? 's' : '' %></strong>
+            </div>
+
+            <hr class="detail-divider">
+
+            <h3>Price Breakdown</h3>
+            <div class="price-breakdown">
+                <div class="price-row">
+                    <span>&#8377;<%= booking.listing ? booking.listing.price.toLocaleString("en-IN") : "0" %> × <%= nights %> night<%= nights > 1 ? 's' : '' %></span>
+                    <span>&#8377;<%= basePrice.toLocaleString("en-IN") %></span>
+                </div>
+                <div class="price-row">
+                    <span>Cleaning fee</span>
+                    <span>&#8377;<%= cleaningFee.toLocaleString("en-IN") %></span>
+                </div>
+                <div class="price-row">
+                    <span>Service fee</span>
+                    <span>&#8377;<%= serviceFee.toLocaleString("en-IN") %></span>
+                </div>
+                <hr class="detail-divider">
+                <div class="price-row price-total">
+                    <span>Total</span>
+                    <span>&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></span>
+                </div>
+            </div>
+
+            <% if(booking.status === 'cancelled') { %>
+                <div class="cancellation-info">
+                    <h4><i class="fa-solid fa-circle-info"></i> Cancellation Info</h4>
+                    <p><strong>Cancelled by:</strong> <%= booking.cancelledBy || "N/A" %></p>
+                    <% if(booking.cancelledAt) { %>
+                        <p><strong>Cancelled on:</strong> <%= booking.cancelledAt.toLocaleDateString('en-IN', {day: 'numeric', month: 'long', year: 'numeric'}) %></p>
+                    <% } %>
+                    <% if(booking.cancellationReason) { %>
+                        <p><strong>Reason:</strong> <%= booking.cancellationReason %></p>
+                    <% } %>
+                    <% if(booking.lateCancellation) { %>
+                        <p class="late-cancel-warning"><i class="fa-solid fa-triangle-exclamation"></i> This was a late cancellation (less than 48 hours before check-in)</p>
+                    <% } %>
+                </div>
+            <% } %>
+
+            <% if(booking.status === 'confirmed') { %>
+                <div class="cancel-booking-section">
+                    <h4>Need to cancel?</h4>
+                    <form method="post" action="/bookings/<%= booking._id %>/cancel" class="cancel-form">
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for cancellation (optional)</label>
+                            <textarea name="reason" id="reason" class="form-control" rows="2" placeholder="Tell us why you're cancelling..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-cancel-booking" onclick="return confirm('Are you sure you want to cancel this booking? This action cannot be undone.')">
+                            <i class="fa-solid fa-xmark"></i> Cancel Booking
+                        </button>
+                    </form>
+                </div>
+            <% } %>
+
+            <div class="booking-timeline">
+                <h4>Booking Timeline</h4>
+                <div class="timeline">
+                    <div class="timeline-item timeline-done">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Booking Created</strong>
+                            <span><%= booking.createdAt.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></span>
+                        </div>
+                    </div>
+                    <div class="timeline-item <%= booking.status !== 'cancelled' ? 'timeline-done' : 'timeline-skip' %>">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <strong>Confirmed</strong>
+                            <span>Instant confirmation</span>
+                        </div>
+                    </div>
+                    <% if(booking.status === 'cancelled') { %>
+                        <div class="timeline-item timeline-cancelled">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <strong>Cancelled</strong>
+                                <span><%= booking.cancelledAt ? booking.cancelledAt.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) : "" %></span>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <div class="timeline-item <%= new Date() >= booking.checkIn ? 'timeline-done' : '' %>">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <strong>Check-in</strong>
+                                <span><%= booking.checkIn.toLocaleDateString('en-IN', {day: 'numeric', month: 'short'}) %></span>
+                            </div>
+                        </div>
+                        <div class="timeline-item <%= new Date() >= booking.checkOut ? 'timeline-done' : '' %>">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <strong>Check-out</strong>
+                                <span><%= booking.checkOut.toLocaleDateString('en-IN', {day: 'numeric', month: 'short'}) %></span>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

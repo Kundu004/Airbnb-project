@@ -1,0 +1,115 @@
+<% layout("/layouts/boilerplate") %>
+<link rel="stylesheet" href="/css/booking.css">
+
+<div class="bookings-page host-dashboard">
+    <div class="bookings-header">
+        <h2><i class="fa-solid fa-chart-line"></i> Host Dashboard</h2>
+        <p class="bookings-subtitle">Manage bookings on your listings</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="host-stats">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="stat-info">
+                <span class="stat-number"><%= totalBookings %></span>
+                <span class="stat-label">Total Bookings</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div class="stat-info">
+                <span class="stat-number">&#8377;<%= totalEarnings.toLocaleString("en-IN") %></span>
+                <span class="stat-label">Total Earnings</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-user-clock"></i></div>
+            <div class="stat-info">
+                <span class="stat-number"><%= upcomingGuests %></span>
+                <span class="stat-label">Upcoming Guests</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-house"></i></div>
+            <div class="stat-info">
+                <span class="stat-number"><%= myListings.length %></span>
+                <span class="stat-label">Your Listings</span>
+            </div>
+        </div>
+    </div>
+
+    <% if(bookings.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fa-solid fa-house-circle-xmark"></i>
+            </div>
+            <h3>No bookings yet</h3>
+            <p>Once guests start booking your listings, they'll appear here</p>
+            <a href="/listings/new" class="btn-explore">Create a Listing</a>
+        </div>
+    <% } else { %>
+        <div class="booking-section">
+            <h3 class="section-title"><i class="fa-solid fa-list"></i> All Reservations</h3>
+            <div class="host-bookings-table-wrapper">
+                <table class="host-bookings-table">
+                    <thead>
+                        <tr>
+                            <th>Guest</th>
+                            <th>Listing</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Guests</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for(const booking of bookings) { %>
+                            <tr class="<%= booking.status === 'cancelled' ? 'row-cancelled' : '' %>">
+                                <td>
+                                    <div class="guest-info">
+                                        <% if(booking.guest && booking.guest.image && booking.guest.image.url) { %>
+                                            <img src="<%= booking.guest.image.url %>" alt="Guest" class="guest-avatar">
+                                        <% } else { %>
+                                            <img src="/Icon/navbar-icon-user.png" alt="Guest" class="guest-avatar">
+                                        <% } %>
+                                        <span><%= booking.guest ? booking.guest.fName : "Unknown" %></span>
+                                    </div>
+                                </td>
+                                <td class="td-listing"><%= booking.listing ? booking.listing.title : "Removed" %></td>
+                                <td><%= booking.checkIn.toLocaleDateString('en-IN', {day: 'numeric', month: 'short'}) %></td>
+                                <td><%= booking.checkOut.toLocaleDateString('en-IN', {day: 'numeric', month: 'short'}) %></td>
+                                <td class="td-center"><%= booking.guests %></td>
+                                <td class="td-price">&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></td>
+                                <td>
+                                    <% if(booking.status === 'confirmed') { %>
+                                        <span class="status-badge status-confirmed">Confirmed</span>
+                                    <% } else if(booking.status === 'cancelled') { %>
+                                        <span class="status-badge status-cancelled">Cancelled</span>
+                                    <% } else if(booking.status === 'completed') { %>
+                                        <span class="status-badge status-completed">Completed</span>
+                                    <% } else { %>
+                                        <span class="status-badge status-pending">Pending</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="/bookings/<%= booking._id %>" class="action-btn action-view" title="View"><i class="fa-solid fa-eye"></i></a>
+                                        <% if(booking.status === 'confirmed') { %>
+                                            <form method="post" action="/bookings/<%= booking._id %>/cancel" style="display:inline;">
+                                                <input type="hidden" name="reason" value="Cancelled by host">
+                                                <button type="submit" class="action-btn action-cancel" title="Cancel" onclick="return confirm('Cancel this booking?')"><i class="fa-solid fa-xmark"></i></button>
+                                            </form>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% } %>
+</div>

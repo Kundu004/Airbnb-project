@@ -1,0 +1,176 @@
+<% layout("/layouts/boilerplate") %>
+<link rel="stylesheet" href="/css/booking.css">
+<link rel="stylesheet" href="/css/delete-confirm.css">
+
+<div class="bookings-page">
+    <div class="bookings-header">
+        <h2><i class="fa-solid fa-suitcase-rolling"></i> My Trips</h2>
+        <p class="bookings-subtitle">Manage your reservations and upcoming stays</p>
+    </div>
+
+    <% if(allBookings.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fa-solid fa-plane-departure"></i>
+            </div>
+            <h3>No trips yet</h3>
+            <p>Time to dust off your bags and start planning your next adventure</p>
+            <a href="/listings" class="btn-explore">Start Exploring</a>
+        </div>
+    <% } else { %>
+
+        <% if(active.length > 0) { %>
+            <div class="booking-section">
+                <h3 class="section-title"><i class="fa-solid fa-house-circle-check"></i> Currently Staying</h3>
+                <div class="bookings-grid">
+                    <% for(const booking of active) { %>
+                        <div class="booking-card booking-active">
+                            <div class="booking-card-img">
+                                <% if(booking.listing) { %>
+                                    <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+                                <% } else { %>
+                                    <img src="/Icon/listing-img-pre.png" alt="Listing unavailable">
+                                <% } %>
+                                <span class="booking-badge badge-active">Active</span>
+                            </div>
+                            <div class="booking-card-body">
+                                <h4><%= booking.listing ? booking.listing.title : "Listing removed" %></h4>
+                                <p class="booking-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <%= booking.listing ? `${booking.listing.location}, ${booking.listing.country}` : "N/A" %>
+                                </p>
+                                <div class="booking-dates">
+                                    <div><span>Check-in</span><strong><%= booking.checkIn.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                    <div class="date-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                                    <div><span>Check-out</span><strong><%= booking.checkOut.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                </div>
+                                <div class="booking-meta">
+                                    <span><i class="fa-solid fa-users"></i> <%= booking.guests %> guest<%= booking.guests > 1 ? 's' : '' %></span>
+                                    <span class="booking-price">&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></span>
+                                </div>
+                                <a href="/bookings/<%= booking._id %>" class="btn-view-details">View Details</a>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+        <% if(upcoming.length > 0) { %>
+            <div class="booking-section">
+                <h3 class="section-title"><i class="fa-solid fa-calendar-check"></i> Upcoming</h3>
+                <div class="bookings-grid">
+                    <% for(const booking of upcoming) { %>
+                        <div class="booking-card">
+                            <div class="booking-card-img">
+                                <% if(booking.listing) { %>
+                                    <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+                                <% } else { %>
+                                    <img src="/Icon/listing-img-pre.png" alt="Listing unavailable">
+                                <% } %>
+                                <span class="booking-badge badge-confirmed">Confirmed</span>
+                            </div>
+                            <div class="booking-card-body">
+                                <h4><%= booking.listing ? booking.listing.title : "Listing removed" %></h4>
+                                <p class="booking-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <%= booking.listing ? `${booking.listing.location}, ${booking.listing.country}` : "N/A" %>
+                                </p>
+                                <div class="booking-dates">
+                                    <div><span>Check-in</span><strong><%= booking.checkIn.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                    <div class="date-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                                    <div><span>Check-out</span><strong><%= booking.checkOut.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                </div>
+                                <div class="booking-meta">
+                                    <span><i class="fa-solid fa-users"></i> <%= booking.guests %> guest<%= booking.guests > 1 ? 's' : '' %></span>
+                                    <span class="booking-price">&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></span>
+                                </div>
+                                <div class="booking-actions">
+                                    <a href="/bookings/<%= booking._id %>" class="btn-view-details">View Details</a>
+                                    <form method="post" action="/bookings/<%= booking._id %>/cancel" class="cancel-form-inline">
+                                        <input type="hidden" name="reason" value="Cancelled by guest">
+                                        <button type="submit" class="btn-cancel" onclick="return confirm('Are you sure you want to cancel this booking?')">Cancel</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+        <% if(past.length > 0) { %>
+            <div class="booking-section">
+                <h3 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Past Trips</h3>
+                <div class="bookings-grid">
+                    <% for(const booking of past) { %>
+                        <div class="booking-card booking-past">
+                            <div class="booking-card-img">
+                                <% if(booking.listing) { %>
+                                    <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+                                <% } else { %>
+                                    <img src="/Icon/listing-img-pre.png" alt="Listing unavailable">
+                                <% } %>
+                                <span class="booking-badge badge-completed">Completed</span>
+                            </div>
+                            <div class="booking-card-body">
+                                <h4><%= booking.listing ? booking.listing.title : "Listing removed" %></h4>
+                                <p class="booking-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <%= booking.listing ? `${booking.listing.location}, ${booking.listing.country}` : "N/A" %>
+                                </p>
+                                <div class="booking-dates">
+                                    <div><span>Check-in</span><strong><%= booking.checkIn.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                    <div class="date-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                                    <div><span>Check-out</span><strong><%= booking.checkOut.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                </div>
+                                <div class="booking-meta">
+                                    <span><i class="fa-solid fa-users"></i> <%= booking.guests %> guest<%= booking.guests > 1 ? 's' : '' %></span>
+                                    <span class="booking-price">&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></span>
+                                </div>
+                                <a href="/bookings/<%= booking._id %>" class="btn-view-details">View Details</a>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+        <% if(cancelled.length > 0) { %>
+            <div class="booking-section">
+                <h3 class="section-title"><i class="fa-solid fa-ban"></i> Cancelled</h3>
+                <div class="bookings-grid">
+                    <% for(const booking of cancelled) { %>
+                        <div class="booking-card booking-cancelled">
+                            <div class="booking-card-img">
+                                <% if(booking.listing) { %>
+                                    <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+                                <% } else { %>
+                                    <img src="/Icon/listing-img-pre.png" alt="Listing unavailable">
+                                <% } %>
+                                <span class="booking-badge badge-cancelled">Cancelled</span>
+                            </div>
+                            <div class="booking-card-body">
+                                <h4><%= booking.listing ? booking.listing.title : "Listing removed" %></h4>
+                                <p class="booking-location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <%= booking.listing ? `${booking.listing.location}, ${booking.listing.country}` : "N/A" %>
+                                </p>
+                                <div class="booking-dates">
+                                    <div><span>Check-in</span><strong><%= booking.checkIn.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                    <div class="date-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                                    <div><span>Check-out</span><strong><%= booking.checkOut.toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></strong></div>
+                                </div>
+                                <% if(booking.cancellationReason) { %>
+                                    <p class="cancellation-reason"><i class="fa-solid fa-circle-info"></i> <%= booking.cancellationReason %></p>
+                                <% } %>
+                                <a href="/bookings/<%= booking._id %>" class="btn-view-details">View Details</a>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+    <% } %>
+</div>
